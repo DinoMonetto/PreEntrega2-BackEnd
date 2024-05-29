@@ -1,4 +1,4 @@
-{{!-- src/views/realTimeProducts.handlebars --}}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,7 +12,7 @@
     <h1>Productos en Tiempo Real</h1>
     <ul id="product-list">
         {{#each products}}
-        <li data-id="{{this.id}}">{{this.name}} - {{this.price}}</li>
+        <li data-id="{{this.id}}">{{this.title}} - {{this.price}}</li>
         {{/each}}
     </ul>
 </body>

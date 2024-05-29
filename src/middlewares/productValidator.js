@@ -1,4 +1,4 @@
-// Define un middleware llamado productValidator
+
 export const productValidator = (req, res, next) => {
     // Verifica si alguno de los campos requeridos está ausente en el cuerpo de la solicitud
     if (
