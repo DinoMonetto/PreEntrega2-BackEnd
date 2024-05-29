@@ -1,37 +1,71 @@
-// Importa express y otras dependencias
 import express from 'express';
-import path from 'path';
+import { Server } from 'socket.io';
+import { createServer } from 'http';
+import { join } from 'path';
 import { fileURLToPath } from 'url';
+import exphbs from 'express-handlebars';
+import productRouter from './routes/products.js';
+import cartRouter from './routes/carts.js';
+import ProductManager from './managers/product.manager.js';
 
-// Crea una instancia de la aplicación express
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = join(__filename, '..');
+
 const app = express();
+const server = createServer(app);
+const io = new Server(server);
 
-// Importa los enrutadores de productos y carritos
-import productsRouter from './routes/products.js';
-import cartsRouter from './routes/carts.js';
+const productManager = new ProductManager();  // Instancia del ProductManager
 
-// Importa el middleware errorHandler
-import { errorHandler } from './middlewares/errorHandler.js';
-
-// Middleware para analizar el cuerpo de las solicitudes entrantes como JSON
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(join(__dirname, 'public')));
 
-// Asocia los enrutadores a las rutas correspondientes
-app.use('/api/products', productsRouter);
-app.use('/api/carts', cartsRouter);
+// Configurar Handlebars
+app.engine('handlebars', exphbs({
+  defaultLayout: 'main',
+  layoutsDir: join(__dirname, 'views', 'layouts')
+}));
+app.set('view engine', 'handlebars');
+app.set('views', join(__dirname, 'views'));
 
-// Middleware para manejar errores
-app.use(errorHandler);
+// Rutas
+app.use('/api/products', productRouter);
+app.use('/api/carts', cartRouter);
 
-// Define el directorio de archivos estáticos
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const publicDir = path.join(__dirname, 'public');
-app.use(express.static(publicDir));
+// Página de inicio
+app.get('/', async (req, res) => {
+  const products = await productManager.getProducts();
+  res.render('home', { products });
+});
 
-// Define el puerto en el que la aplicación escuchará las solicitudes
-const PORT = process.env.PORT || 8080;
+// Página de productos en tiempo real
+app.get('/realtimeproducts', async (req, res) => {
+  const products = await productManager.getProducts();
+  res.render('realTimeProducts', { products });
+});
 
-// Inicia el servidor y le hace escuchar en el puerto especificado
-app.listen(PORT, () => {
-    console.log(`Escuchando en el puerto ${PORT}`);
+// Configurar WebSocket
+io.on('connection', (socket) => {
+  console.log('Nuevo cliente conectado');
+  productManager.getProducts().then(products => {
+    socket.emit('products', products);
+  });
+
+  socket.on('addProduct', async (product) => {
+    await productManager.addProduct(product);
+    const products = await productManager.getProducts();
+    io.emit('products', products);
+  });
+
+  socket.on('deleteProduct', async (productId) => {
+    await productManager.deleteProduct(productId);
+    const products = await productManager.getProducts();
+    io.emit('products', products);
+  });
+});
+
+const PORT = 8080;
+server.listen(PORT, () => {
+  console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });

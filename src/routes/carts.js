@@ -1,75 +1,24 @@
-import express from 'express';
-import path from 'path';
+import { Router } from 'express';
 import CartManager from '../managers/cart.manager.js';
-import { __dirname } from '../path.js';
 
-const router = express.Router();
-const cartsFilePath = path.join(__dirname, '../src/data/carts.json'); // Corrección aquí
+const router = Router();
+const cartManager = new CartManager('./src/data/carts.json');
 
-const cartManager = new CartManager(cartsFilePath);
-
-// Funciones auxiliares para obtener y guardar carritos
-const getCarts = async () => {
-  try {
-    const data = await fs.readFile(cartsFilePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    return [];
-  }
-};
-
-const saveCarts = async (carts) => {
-  await fs.writeFile(cartsFilePath, JSON.stringify(carts, null, 2));
-};
+router.get('/', async (req, res) => {
+    const carts = await cartManager.getCarts();
+    res.json(carts);
+});
 
 router.post('/', async (req, res) => {
-  try {
-    const carts = await getCarts();
-    const newCart = {
-      id: uuidv4(),
-      products: [],
-    };
-    carts.push(newCart);
-    await saveCarts(carts);
-    res.status(201).json(newCart);
-  } catch (error) {
-    res.status(500).json({ message: 'Error al crear el carrito' });
-  }
+    const cart = req.body;
+    await cartManager.addCart(cart);
+    res.status(201).json({ message: 'Carrito agregado' });
 });
 
-router.get('/:cid', async (req, res) => {
-  try {
-    const carts = await getCarts();
-    const cart = carts.find(c => c.id === req.params.cid);
-    if (!cart) {
-      return res.status(404).json({ message: 'Carrito no encontrado' });
-    }
-    res.json(cart.products);
-  } catch (error) {
-    res.status(500).json({ message: 'Error al obtener el carrito' });
-  }
-});
-
-router.post('/:cid/product/:pid', async (req, res) => {
-  try {
-    const carts = await getCarts();
-    const cart = carts.find(c => c.id === req.params.cid);
-    if (!cart) {
-      return res.status(404).json({ message: 'Carrito no encontrado' });
-    }
-
-    const existingProduct = cart.products.find(p => p.product === req.params.pid);
-    if (existingProduct) {
-      existingProduct.quantity += 1;
-    } else {
-      cart.products.push({ product: req.params.pid, quantity: 1 });
-    }
-
-    await saveCarts(carts);
-    res.status(201).json(cart);
-  } catch (error) {
-    res.status(500).json({ message: 'Error al agregar el producto al carrito' });
-  }
+router.delete('/:id', async (req, res) => {
+    const cartId = req.params.id;
+    await cartManager.deleteCart(cartId);
+    res.status(200).json({ message: 'Carrito eliminado' });
 });
 
 export default router;

@@ -1,18 +1,19 @@
 {
   "name": "preentrega1-backend",
   "version": "1.0.0",
-  "description": "",
   "type": "module",
-  "main": "app.mjs",
+  "main": "src/app.js",
   "scripts": {
-    "start": "nodemon app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "express": "^4.19.2",
-    "uuid": "^9.0.1"
+    "express-handlebars": "^5.3.5",
+    "fs-extra": "^9.1.0",
+    "socket.io": "^4.7.5",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.2"
   }
 }
