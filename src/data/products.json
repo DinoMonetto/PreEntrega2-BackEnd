@@ -61,5 +61,9 @@
     "stock": 10,
     "category": "Electrónica",
     "thumbnails": []
+  },
+  {
+    "name": "Fernet Branca",
+    "price": "7000"
   }
 ]

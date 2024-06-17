@@ -14,6 +14,7 @@ PreEntrega1-BackEnd/
 │   │   ├── carts.json
 │   │   └── products.json
 │   ├── views/
+│   │         └── main.handlebars
 │   │   ├── home.handlebars
 │   │   └── realTimeProducts.handlebars
 │   ├── public/
